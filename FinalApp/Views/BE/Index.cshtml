@@ -1,0 +1,215 @@
+﻿
+@{
+    ViewBag.Title = "View";
+    Layout = "~/Views/Shared/styles.cshtml";
+}
+<div class="body" style="background-image: url('../../images/backk.jpg'); background-size: cover; background-repeat: no-repeat ">
+    <h2 style="text-align:center"><b>Employee CRUD Operation</b></h2>
+    <div class="row justify-content-center" style="margin-top:15px">
+        <div class="col-sm-4">
+            <div class="container">
+                
+                    @using (Html.BeginForm("save", "BE", FormMethod.Post))
+                    {
+
+                        <div class="form-group">
+                            <div>
+                                <label class="form-label"><b>First Name</b></label>
+
+                                <input type="text" id="FirstName" name="FirstName" class="form-control" placeholder="FirstName" required />
+
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <div>
+                                <label class="form-label"><b>Last Name</b></label>
+                                <input type="text" id="LastName" name="LastName" class="form-control" placeholder="LastName" />
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <div>
+                                <label class="form-label"><b>Email</b></label>
+                                <input type="text" id="Email" name="Email" class="form-control" placeholder="Email" />
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <div>
+                                <label class="form-label"><b>City</b></label>
+                                <input type="text" id="City" name="City" class="form-control" placeholder="City" />
+                            </div>
+                        </div>
+                        <br />
+                        <div>
+                            <button type="button" id="save" class="btn btn-info" onclick="addProject()"><b>Add</b></button>
+                        </div>
+
+                    }
+                
+            </div>
+        </div>
+    </div>
+    <br />
+
+    
+    <div class="row justify-content-center">
+        <div class="col-sm-8">
+
+            <table id="tbl-school" class=" table table-bordered table-striped table-responsive"  style="width:100%">
+                
+                    <thead>
+                        <tr>
+                            <th>First Name</th>
+                            <th>Last Name</th>
+                            <th>Email</th>
+                            <th>City</th>
+                            <th>Delete</th>
+                            <th>Edit</th>
+                        </tr>
+                    </thead>
+                </table>
+             
+</div>
+    </div>
+</div>
+
+@section Scripts
+{
+    <script src="~/Scripts/jquery-3.4.1.js"></script>
+    <script src="~/Scripts/jquery-3.4.1.min.js"></script>
+    <script src="//cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+
+
+   <script>
+       getall();
+       var isNew = true;
+
+
+       function addProject()
+       {
+           var url = '';
+           var data = '';
+           var method;
+
+           if (isNew == true) {
+               url = '/BE/save';
+               data = "{FirstName : '" + $('#FirstName').val() + "',LastName : '" + $('#LastName').val() + "',Email : '" + $('#Email').val() + "',City : '" + $('#City').val() + "'}";
+               method = 'POST';
+           }
+           else {
+               url = '/BE/save';
+               data = "{FirstName : '" + $('#FirstName').val() + "',LastName : '" + $('#LastName').val() + "',Email : '" + $('#Email').val() + "',City : '" + $('#City').val() + "',id: '" + ID + "'}";
+               method = 'POST';
+           }
+
+           $.ajax({
+               type: method,
+               url: url,
+               dataType: 'JSON',
+               contentType: "application/json;charset=utf-8",
+               data: data,
+
+               success: function (data)
+               {
+                   getall();
+                   if (isNew) {
+                       alert("Data Added Successfully!! ");
+                         
+                   }
+                   else {
+                       alert("Data Updated Successfully!! ");
+                       
+                   }
+                   clear();
+               }
+
+           })
+       }
+       function clear() {
+           $('#FirstName').val('');
+           $('#LastName').val('');
+           $('#Email').val('');
+           $('#City').val('');
+       }
+
+
+       function getall() {
+           $('#tbl-school').dataTable().fnDestroy();
+           $('#tbl-school').dataTable({
+
+               "ajax":
+               {
+                   "url": '/BE/GetEmp',
+                   "type": "get",
+                   "datatype":"JSON"
+               },
+               "columns": [
+                   { data: "FirstName" },
+                   { data: "LastName" },
+                   { data: "Email" },
+                   { data: "City" },
+                   {
+                       data: "id", "render": function (data)
+                       {
+                           return '<button class="btn btn-success" onclick="get_emp(' + data + ')">Edit</button>';
+                       }
+                   },
+
+                   {
+                       data: "id", "render": function (data) {
+                           return '<button class="btn btn-danger" onclick="get_delete(' + data + ')">Delete</button>';
+                       }
+                   }
+               ]
+
+
+           })
+       }
+
+
+
+
+       function get_emp(id) {
+
+           $.ajax({
+
+               type: 'Get',
+               url: '/BE/Edit?Id=' + id,
+               dataType: 'JSON',
+               contentType: "application/json;charset=utf-8",
+               success: function (data)
+               {
+                   isNew = false;
+
+                   ID = data.id;
+                   $('#FirstName').val(data.FirstName);
+                   $('#LastName').val(data.LastName);
+                   $('#Email').val(data.Email);
+                   $('#City').val(data.City);
+                   
+               }
+           })
+
+       }
+
+
+       function get_delete(id)
+       {
+           $.ajax({
+               type: 'POST',
+               url: '/BE/Remove?Id=' + id,
+               dataType: 'JSON',
+               contentType: "application/json;charset=utf-8",
+
+               success: function (data) {
+                   alert("Data Deleted Successfully!! ");
+                   getall();
+                   clear();
+               }
+           })
+       }
+    </script>
+
+}
